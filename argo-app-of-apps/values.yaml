@@ -8,7 +8,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   source:
-    repoURL: https://github.com/shanebedgie/local-infra.git
+    repoURL: https://github.com/andriespretorius/local-infra.git
     targetRevision: HEAD
   additionalMetadata:
     finalizers:
