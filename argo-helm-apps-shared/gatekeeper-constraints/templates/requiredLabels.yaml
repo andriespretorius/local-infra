@@ -1,0 +1,18 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: all-must-have-label
+spec:
+  match:
+    scope: Namespaced
+    namespaces: ["dev", "qa", "prod"]
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod","Service","Deployment"]
+  parameters:
+    message: "All pods, services and deployments must have `team` and `tech` labels"
+    labels:
+      - key: team
+        allowedRegex: "(.|\\s)*\\S(.|\\s)*"
+      - key: tech
+        allowedRegex: "(.|\\s)*\\S(.|\\s)*"

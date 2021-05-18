@@ -1,0 +1,8 @@
+gatekeeperConstraints:
+  nameOverride: gatekeeperConstraints
+  fullnameOverride: gatekeeperConstraints
+  
+  containerLimits:
+    cpu: NOTPROVIDED
+    memory: NOTPROVIDED
+

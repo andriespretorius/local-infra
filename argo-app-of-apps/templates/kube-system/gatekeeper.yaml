@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    {{ toYaml .Values.spec.additionalMetadata | nindent 2 }}
+spec:
+  ignoreDifferences:
+  - group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+    jsonPointers:
+      - /caBundle
+  destination:
+    namespace: kube-system
+    server: {{ .Values.spec.destination.server }}
+  project: {{ .Values.spec.project }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  source:
+    path: {{ .Values.spec.appsSharedPath }}gatekeeper
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      values:  |
+        gatekeeper:
+          image:
+            repository: {{ .Values.spec.kubeSystem.gatekeeper.image.repository }}
+            tag: {{ .Values.spec.kubeSystem.gatekeeper.image.tag }}
+      valueFiles:
+        - values.yaml

@@ -1,0 +1,24 @@
+spec:
+  appsSharedPath: argo-helm-apps-shared/
+  project: infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/shanebedgie/local-infra.git
+    targetRevision: HEAD
+  additionalMetadata:
+    finalizers:
+      - resources-finalizer.argocd.argoproj.io    
+  kubeSystem:
+    gatekeeper:
+      image:
+        repository: openpolicyagent/gatekeeper
+        tag: v3.4.0
+    gatekeeperConstraints:
+      containerLimits:
+        cpu: "250m"
+        memory: "256Mi"

@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper-contraints
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    {{ toYaml .Values.spec.additionalMetadata | nindent 2}}
+spec:
+  destination:
+    namespace:  kube-system
+    server: {{ .Values.spec.destination.server }}
+  project: {{ .Values.spec.project }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  source:
+    path: {{ .Values.spec.appsSharedPath }}gatekeeper-constraints
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      values:  |
+        gatekeeperContraints:
+          containerLimits:
+            cpu: {{ .Values.spec.kubeSystem.gatekeeperConstraints.containerLimits.cpu }}
+            memory: {{ .Values.spec.kubeSystem.gatekeeperConstraints.containerLimits.memory }}
+      valueFiles:
+        - values.yaml

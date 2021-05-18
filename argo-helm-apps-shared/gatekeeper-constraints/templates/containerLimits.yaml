@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sContainerLimits
+metadata:
+  name: container-must-have-limits
+spec:
+  match:
+    scope: Namespaced
+    namespaces: ["dev", "qa", "prod"]
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod", "Deployment"]
+  parameters:
+    cpu: {{ .Values.gatekeeperContraints.containerLimits.cpu }}
+    memory: {{ .Values.gatekeeperContraints.containerLimits.memory }}

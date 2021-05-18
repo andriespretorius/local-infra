@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helm-infra
+spec:
+  ignoreDifferences:
+  - group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+    jsonPointers:
+      - /webhooks/0/clientConfig/caBundle
+  destination:
+    name: ''
+    namespace: infra
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: argo-app-of-apps
+    repoURL: 'https://github.com/shanebedgie/local-infra.git'
+    targetRevision: HEAD
+  project: infra
+  syncPolicy: {}

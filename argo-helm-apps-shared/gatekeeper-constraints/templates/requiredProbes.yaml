@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredProbes
+metadata:
+  name: must-have-probes
+spec:
+  match:
+    scope: Namespaced
+    namespaces: ["dev", "qa", "staging", "prod"]
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod", "Deployment"] 
+  parameters:
+    probes: ["readinessProbe", "livenessProbe"]
+    probeTypes: ["tcpSocket", "httpGet", "exec"]
