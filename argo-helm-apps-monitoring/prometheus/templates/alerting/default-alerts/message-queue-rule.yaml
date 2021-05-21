@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    prometheus: monitoring-local
+  name: message-queue-failure
+spec:
+  groups:
+    - name: spring-boot/queue-failure
+      rules:
+        - alert: Message queue failure
+          expr: irate(message_process_seconds_count{exception!="none"}[2m]) > 0.1
+          labels:
+            slack_channel: slack-notifications
+          annotations:
+            title: "Message queue failure"
+            summary: "Application {{ "{{$labels.application}}" }} throws an exception during JMS processing on {{ "{{$labels.namespace}}" }}"
+            description: "{{ "{{$labels.application}}" }} throws an exception more than once in 2 minutes during JMS processing."
+

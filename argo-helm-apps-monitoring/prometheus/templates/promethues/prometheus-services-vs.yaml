@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  creationTimestamp: null
+  name: prometheus
+spec:
+  gateways:
+    - istio-system/istio-ingressgateway-platfrom
+  hosts:
+    - ql-prometheus{{.Values.gatewayHostSuffix}}
+  http:
+     - route:
+       - destination:
+           host: prometheus-operated
+           port:
+             number: 9090
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  creationTimestamp: null
+  name: alertmanager
+spec:
+  gateways:
+    - istio-system/istio-ingressgateway-platfrom
+  hosts:
+    - alertmanager{{.Values.gatewayHostSuffix}}
+  http:
+    - route:
+        - destination:
+            host: alertmanager-services
+            port:
+              number: 9093

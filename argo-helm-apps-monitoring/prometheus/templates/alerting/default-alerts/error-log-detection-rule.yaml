@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    prometheus: monitoring-local
+  name: error-log-detection
+spec:
+  groups:
+    - name: spring-boot/error-log
+      rules:
+        - alert: Errors in log
+          expr: irate(logback_events_total{ level="error"}[5m])  > 0.1
+          for: 5m
+          labels:
+            slack_channel: slack-notifications
+          annotations:
+            title: "Errors in log"
+            summary: "Significant amount of errors occurring in {{ "{{$labels.application}}" }} on {{ "{{$labels.namespace}}" }}"
+            description: "{{ "{{$labels.application}}" }} has logged errors"

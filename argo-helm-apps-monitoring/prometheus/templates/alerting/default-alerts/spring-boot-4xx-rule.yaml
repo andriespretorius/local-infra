@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    prometheus: monitoring-local
+  name: spring-boot-4xx
+spec:
+  groups:
+    - name: spring-boot/4xx
+      rules:
+        - alert: Http Spring Boot 4xx
+          expr: rate(http_server_requests_seconds_count{status=~"4.*"}[2m]) > 0.1
+          for: 1m
+          labels:
+            slack_channel: slack-notifications
+          annotations:
+            title: "Http Spring Boot 4xx"
+            summary: "Application {{ "{{$labels.application}}" }} throwing reporting 4xx {{ "{{$labels.namespace}}" }}"
+            description: "{{ "{{$labels.application}}" }} has responded with a status            of {{ "{{$labels.status}}" }} excessively"

@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    prometheus: monitoring-local
+  name: service-up
+spec:
+  groups:
+    - name: spring-boot/service-up
+      rules:
+        - alert: Serivice instance down
+          expr: up <1
+          for: 5m
+          labels:
+            slack_channel: slack-notifications
+          annotations:
+            title: Service instance down"
+            summary: "Service  {{ "{{$labels.job}}" }} instance {{ " {{$labels.instance}}" }} seems down."
+            description: "Failed to scrape {{ "{{ $labels.job }}" }} on {{ "{{ $labels.instance }}" }} for more than 3 minutes. insance seems down."

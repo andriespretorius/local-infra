@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    prometheus: monitoring-local
+  name: spring-boot-5xx
+spec:
+  groups:
+    - name: spring-boot/5xx
+      rules:
+        - alert: Http Spring Boot 5xx
+          expr: rate(http_server_requests_seconds_count{status=~"5.*"}[2m]) > 0.1
+          for: 1m
+          labels:
+            slack_channel: slack-notifications
+          annotations:
+            title: "Http Spring Boot 5xx"
+            summary: "Application {{ "{{$labels.application}}" }} throwing internal server errors on {{ "{{$labels.namespace}}" }}"
+            description: "{{ "{{$labels.application}}" }} has responded with a status        of {{ "{{$labels.status}}" }}  excessively"

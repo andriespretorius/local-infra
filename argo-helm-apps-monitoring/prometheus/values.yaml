@@ -1,0 +1,4 @@
+
+nameOverride: "promethues"
+fullnameOverride: "promethues"
+gatewayHostSuffix: NOT_PROVIDED

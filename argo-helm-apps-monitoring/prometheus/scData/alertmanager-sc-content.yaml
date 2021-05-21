@@ -1,0 +1,51 @@
+global:
+  resolve_timeout: 5m
+route:
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'slack-notifications-default'
+  group_by: [ 'namespace', 'job']
+  routes:
+  - receiver: 'slack-notifications-dev'
+    match:
+      namespace: dev
+receivers:
+  - name: 'slack-notifications-default'
+    slack_configs:
+      - send_resolved: true
+        channel: '{{ index ((index .Alerts 0).Labels) "slack_channel"}}-{{.CommonLabels.namespace}}'
+        icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
+        api_url: 'https://hooks.slack.com/services/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'
+        title: |-
+          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+        text: >-
+
+          *Alert details*:
+
+          {{ range .Alerts -}}
+            *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+  - name: 'slack-notifications-dev'
+    slack_configs:
+    - send_resolved: true
+      channel: '{{ index ((index .Alerts 0).Labels) "slack_channel"}}-{{.CommonLabels.namespace}}'
+      icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
+      api_url: 'https://hooks.slack.com/services/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'
+      title: |-
+        [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+      text: >-
+
+        *Alert details*:
+
+        {{ range .Alerts -}}
+          *Summary:* {{ .Annotations.summary }}
+        *Description:* {{ .Annotations.description }}
+        *Details:*
+          {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+          {{ end }}
+        {{ end }}

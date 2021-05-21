@@ -1,0 +1,29 @@
+apiVersion:  monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus-services
+  labels:
+    app: prometheus
+    prometheus: monitoring-local
+    type: spring
+spec:
+  version: v2.13.1
+  alerting:
+    alertmanagers:
+      - namespace: monitoring-local
+        name: alertmanager-services
+        port: web
+  ruleSelector:
+    matchLabels:
+      role: alert-rules
+  externalUrl: http://prometheus{{.Values.gatewayHostSuffix}}
+  serviceAccountName: {{ template "prometheus.fullname" . }}
+  serviceMonitorNamespaceSelector:
+    matchLabels:
+      prometheus: prometheus-services
+  serviceMonitorSelector:
+    matchLabels:
+      prometheus: monitoring-local
+  podMonitorSelector:
+    matchLabels:
+      prometheus: monitoring-local
