@@ -14,7 +14,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   source:
     path: argo-app-of-apps
-    repoURL: 'https://github.com/shanebedgie/local-infra.git'
+    repoURL: 'https://github.com/andriespretorius/local-infra.git'
     targetRevision: HEAD
   project: infra
   syncPolicy: {}
