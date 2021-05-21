@@ -1,0 +1,82 @@
+{{ if .Values.spec.monitoringSystem.prometheusOperator.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-operator
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    recipients.argocd-notifications.argoproj.io: "{{.Values.spec.slackChannel}}"
+  {{ toYaml .Values.spec.additionalMetadata | nindent 2}}
+spec:
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        - /spec
+        - /metadata
+  destination:
+    namespace: monitoring-system
+    server: {{ .Values.spec.destination.server }}
+  project: {{ .Values.spec.project }}
+  {{- with .Values.spec.syncPolicy }}
+  syncPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  source:
+    path: {{ .Values.spec.appsMonitoring }}prometheus-operator
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      releaseName: prometheus-operator
+      values: |
+        prometheus-operator:
+          alertmanager:
+            config:
+              route:
+                group_by: 
+                  {{ range .Values.spec.monitoringSystem.prometheusOperator.alertmanager.config.route.group_by }}
+                  - {{ . }}
+                  {{- end }}
+              receivers:
+                {{- toYaml .Values.spec.monitoringSystem.prometheusOperator.alertmanager.config.receivers | nindent 16 }}
+            alertmanagerSpec:
+              image:
+                repository: {{ .Values.spec.monitoringSystem.prometheusOperator.alertmanager.alertmanagerSpec.image.repository }}
+                tag:  {{ .Values.spec.monitoringSystem.prometheusOperator.alertmanager.alertmanagerSpec.image.tag }}
+              externalUrl: {{ .Values.spec.monitoringSystem.prometheusOperator.alertmanager.alertmanagerSpec.externalUrl }}.{{ .Values.spec.common.privateDomain }}
+          grafana:
+            image:
+              repository: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.image.repository }}
+              tag: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.image.tag }}
+            adminPassword: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.adminPassword }}
+            env:
+              GF_RENDERING_SERVER_URL: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.env.renderer_url }}
+              GF_RENDERING_CALLBACK_URL: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.env.renderer_callback_url }}
+            grafana.ini:
+              server:
+                root_url: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.server.root_url }}.{{ .Values.spec.common.privateDomain }}
+              auth.generic_oauth:
+                client_id: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.client_id }}
+                client_secret: {{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.client_secret }}
+                auth_url: https://{{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.devops_pool_domain_prefix }}.auth.{{ .Values.spec.common.awsRegion }}.amazoncognito.com/oauth2/authorize
+                token_url: https://{{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.devops_pool_domain_prefix }}.auth.{{ .Values.spec.common.awsRegion }}.amazoncognito.com/oauth2/token
+                api_url: https://{{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.devops_pool_domain_prefix }}.auth.{{ .Values.spec.common.awsRegion }}.amazoncognito.com/oauth2/userInfo
+                signout_redirect_url: https://{{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.devops_pool_domain_prefix }}.auth.{{ .Values.spec.common.awsRegion }}.amazoncognito.com/logout?client_id={{ .Values.spec.monitoringSystem.prometheusOperator.grafana.grafana_ini.auth_generic_oauth.client_id }}&logout_uri=https://grafana-cluster.platform.{{ .Values.spec.common.privateDomain }}/login
+            additionalDataSources:
+              {{- toYaml .Values.spec.monitoringSystem.prometheusOperator.grafana.additionalDataSources | nindent 14 }}
+          prometheus:
+            ingressPerReplica:
+              hostDomain: {{ .Values.spec.monitoringSystem.prometheusOperator.prometheus.ingressPerReplica.hostDomain }}{{ .Values.spec.common.privateDomain }}
+            prometheusSpec:
+              externalUrl: {{ .Values.spec.monitoringSystem.prometheusOperator.prometheus.prometheusSpec.externalUrl }}.{{ .Values.spec.common.privateDomain }}
+              query:
+                maxSamples: {{ .Values.spec.monitoringSystem.prometheusOperator.prometheus.prometheusSpec.query.maxSamples }}
+          kube-state-metrics:
+            image:
+              repository: {{ .Values.spec.monitoringSystem.prometheusOperator.kubeStateMetrics.image.repository }}
+              tag: {{ .Values.spec.monitoringSystem.prometheusOperator.kubeStateMetrics.image.tag }}
+        gatewayHostSuffix: {{ .Values.spec.monitoringSystem.prometheusOperator.gatewayHostSuffix }}.{{ .Values.spec.common.privateDomain }}
+      valueFiles:
+        - values.yaml
+{{- end }}

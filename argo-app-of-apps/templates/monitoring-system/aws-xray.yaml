@@ -1,0 +1,35 @@
+{{ if .Values.spec.monitoringSystem.awsXray.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-xray
+  namespace: argo-cd
+  annotations:
+    recipients.argocd-notifications.argoproj.io: "{{.Values.spec.slackChannel}}"
+  {{ toYaml .Values.spec.additionalMetadata | nindent 2}}
+spec:
+  destination:
+    namespace: monitoring-system
+    server: {{ .Values.spec.destination.server }}
+  project: {{ .Values.spec.project }}
+  {{- with .Values.spec.syncPolicy }}
+  syncPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  source:
+    path: {{ .Values.spec.appsMonitoring }}xray
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      values: |
+        image:
+          repository: {{ .Values.spec.monitoringSystem.awsXray.image.repository }}
+          tag: {{ .Values.spec.monitoringSystem.awsXray.image.tag }}
+        serviceAccount:
+          annotations:
+            {{- range $key, $value := .Values.spec.monitoringSystem.awsXray.serviceAccount.annotations }}
+            {{ $key }}: {{ $value }}
+            {{- end }}
+      valueFiles:
+        - values.yaml
+{{- end }}

@@ -1,0 +1,30 @@
+{{ if .Values.spec.monitoringSystem.promethuesAlertsMonitors.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: promethues-alerts-monitors-preprod
+  namespace: argo-cd
+  annotations:
+    recipients.argocd-notifications.argoproj.io: "{{.Values.spec.slackChannel}}"
+  {{ toYaml .Values.spec.additionalMetadata | nindent 2}}
+spec:
+  destination:
+    namespace: monitoring-system
+    server: {{ .Values.spec.destination.server }}
+  project: {{ .Values.spec.project }}
+  {{- with .Values.spec.syncPolicy }}
+  syncPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  source:
+    path: {{ .Values.spec.appsMonitoring }}promethues-alerts-monitors
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    helm:
+      values: |
+        labels:
+          release: {{ .Values.spec.monitoringSystem.promethuesAlertsMonitors.labels.release }}
+        grafanaurl: {{ .Values.spec.monitoringSystem.promethuesAlertsMonitors.grafanaurl }}
+      valueFiles:
+        - values.yaml
+{{- end }}
